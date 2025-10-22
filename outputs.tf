@@ -28,9 +28,11 @@ output "lb_controller_helm_status" {
 output "eks_cluster_name" {
   description = "EKS cluster name from infrastructure workspace"
   value       = data.tfe_outputs.infrastructure.values.eks_cluster_name
+  sensitive   = true
 }
 
 output "vpc_id" {
   description = "VPC ID from infrastructure workspace"
   value       = data.tfe_outputs.infrastructure.values.vpc_id
+  sensitive   = true
 }
