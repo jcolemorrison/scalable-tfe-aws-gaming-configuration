@@ -27,23 +27,16 @@ provider "aws" {
   }
 }
 
+# Get authentication token for EKS cluster
+data "aws_eks_cluster_auth" "cluster" {
+  name = data.tfe_outputs.infrastructure.values.eks_cluster_name
+}
+
 # Kubernetes provider configured with data from infrastructure workspace
 provider "kubernetes" {
   host                   = data.tfe_outputs.infrastructure.values.eks_cluster_endpoint
   cluster_ca_certificate = base64decode(data.tfe_outputs.infrastructure.values.eks_cluster_certificate_authority_data)
-
-  exec {
-    api_version = "client.authentication.k8s.io/v1beta1"
-    command     = "aws"
-    args = [
-      "eks",
-      "get-token",
-      "--cluster-name",
-      data.tfe_outputs.infrastructure.values.eks_cluster_name,
-      "--region",
-      var.aws_region
-    ]
-  }
+  token                  = data.aws_eks_cluster_auth.cluster.token
 }
 
 # Helm provider configured similarly
@@ -51,19 +44,7 @@ provider "helm" {
   kubernetes {
     host                   = data.tfe_outputs.infrastructure.values.eks_cluster_endpoint
     cluster_ca_certificate = base64decode(data.tfe_outputs.infrastructure.values.eks_cluster_certificate_authority_data)
-
-    exec {
-      api_version = "client.authentication.k8s.io/v1beta1"
-      command     = "aws"
-      args = [
-        "eks",
-        "get-token",
-        "--cluster-name",
-        data.tfe_outputs.infrastructure.values.eks_cluster_name,
-        "--region",
-        var.aws_region
-      ]
-    }
+    token                  = data.aws_eks_cluster_auth.cluster.token
   }
 }
 
